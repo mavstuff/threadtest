@@ -8,11 +8,12 @@
 int Client_SendDummyCommand()
 {
     int bRet = 0;
-    int sockfd;
-    struct sockaddr_in server_addr;
+    int sockfd, res;
+    struct sockaddr_in server_addr = {0};
     char buffer[1024];
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    printf("[client] socket created %d\n", sockfd);
     if (sockfd != -1) 
     {
         // Define server address
@@ -23,12 +24,15 @@ int Client_SendDummyCommand()
         inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
 
         // Connect to the server
-        if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == 0) 
+        printf("[clinet] connecting\n");
+        res = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        printf("[client] connect res %d\n", res);
+        if (res == 0)
         {
             strcpy(buffer, "HELLO:\r\n");
 
             // Send message to the server
-            int res = send(sockfd, buffer, strlen(buffer), 0);
+            res = send(sockfd, buffer, strlen(buffer), 0);
             printf("[client] send HELLO, send len %d\n",res);
 
             bRet = 1;
@@ -37,6 +41,7 @@ int Client_SendDummyCommand()
 
         // Close the socket
         close(sockfd);
+        printf("[client] socket closed\n");
     }
 
     return bRet;

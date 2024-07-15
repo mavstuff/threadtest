@@ -19,13 +19,21 @@ void* Server_client_handler(void* param);
 
 int main(int argc, char* argv[])
 {
-    int sockSrv, sockClient;
+    int sockSrv, sockClient, bDetach = 1;
     struct sockaddr_in saServer = { 0 }, saClient = { 0 };
+
+    if (argc > 1 && strcmp(argv[1], "nodetach") == 0)
+        bDetach = 0;
+
+    printf("[server] starting %s detaching threads\n", bDetach ? "with" : "without");
+
     sockSrv = socket(AF_INET, SOCK_STREAM, 0);
 
     saServer.sin_family = AF_INET;
     saServer.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     saServer.sin_port = htons(CONTROL_PORT);
+
+    bind(sockSrv, (struct sockaddr*)&saServer, sizeof(saServer));
 
     listen(sockSrv, SOMAXCONN);
 
@@ -53,8 +61,9 @@ int main(int argc, char* argv[])
                     close(sockClient);
                     free(pParam);
                 }
-
-                pthread_detach(thread_id);
+    
+                if (bDetach)
+                    pthread_detach(thread_id);
             }
         }
         else
@@ -70,7 +79,7 @@ int main(int argc, char* argv[])
 void* Server_client_handler(void* param)
 {
 
-    printf("[Server_client_handler] begin");
+    printf("[Server_client_handler] begin\n");
 
     CLIENT_PARAM* pParam = (CLIENT_PARAM*)param;
     if (pParam == NULL)
